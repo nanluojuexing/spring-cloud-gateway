@@ -74,9 +74,11 @@ public class FilteringWebHandler implements WebHandler {
 	@Override
 	public Mono<Void> handle(ServerWebExchange exchange) {
 		Route route = exchange.getRequiredAttribute(GATEWAY_ROUTE_ATTR);
+		// 获取过滤器
 		List<GatewayFilter> gatewayFilters = route.getFilters();
 
 		List<GatewayFilter> combined = new ArrayList<>(this.globalFilters);
+		// 结合全局的路由器
 		combined.addAll(gatewayFilters);
 		// TODO: needed or cached?
 		AnnotationAwareOrderComparator.sort(combined);
@@ -84,7 +86,7 @@ public class FilteringWebHandler implements WebHandler {
 		if (logger.isDebugEnabled()) {
 			logger.debug("Sorted gatewayFilterFactories: " + combined);
 		}
-
+		// 构建过滤器链 以及执行
 		return new DefaultGatewayFilterChain(combined).filter(exchange);
 	}
 

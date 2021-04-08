@@ -38,7 +38,7 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.G
 /**
  * @author Spencer Gibb
  */
-public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
+public class  RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 
 	private final FilteringWebHandler webHandler;
 
@@ -80,7 +80,7 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 			return Mono.empty();
 		}
 		exchange.getAttributes().put(GATEWAY_HANDLER_MAPPER_ATTR, getSimpleName());
-
+		// 寻找匹配的路由
 		return lookupRoute(exchange)
 				// .log("route-predicate-handler-mapping", Level.FINER) //name this
 				.flatMap((Function<Route, Mono<?>>) r -> {
@@ -90,7 +90,7 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 					}
 
 					exchange.getAttributes().put(GATEWAY_ROUTE_ATTR, r);
-					return Mono.just(webHandler);
+					return Mono.just(webHandler); // 返回要执行的过滤器执行器
 				}).switchIfEmpty(Mono.empty().then(Mono.fromRunnable(() -> {
 					exchange.getAttributes().remove(GATEWAY_PREDICATE_ROUTE_ATTR);
 					if (logger.isTraceEnabled()) {
@@ -119,12 +119,14 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 	}
 
 	protected Mono<Route> lookupRoute(ServerWebExchange exchange) {
+		// getRoutes 从路由管理器中获取所有的路由
 		return this.routeLocator.getRoutes()
 				// individually filter routes so that filterWhen error delaying is not a
-				// problem
+				// problem  转换和连接的操作符 filterwhen 过滤符合条件的 route
 				.concatMap(route -> Mono.just(route).filterWhen(r -> {
 					// add the current route we are testing
 					exchange.getAttributes().put(GATEWAY_PREDICATE_ROUTE_ATTR, r.getId());
+					// 判断路由是否符合条件
 					return r.getPredicate().apply(exchange);
 				})
 						// instead of immediately stopping main flux due to error, log and

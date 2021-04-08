@@ -43,6 +43,7 @@ import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 import org.springframework.web.server.ServerWebExchange;
 
 /**
+ * 从配置文件加载路由信息
  * {@link RouteLocator} that loads routes from a {@link RouteDefinitionLocator}.
  *
  * @author Spencer Gibb
@@ -66,6 +67,14 @@ public class RouteDefinitionRouteLocator implements RouteLocator {
 
 	private final GatewayProperties gatewayProperties;
 
+	/**
+	 * 构造方法
+	 * @param routeDefinitionLocator
+	 * @param predicates
+	 * @param gatewayFilterFactories
+	 * @param gatewayProperties  这里只使用default filters
+	 * @param configurationService
+	 */
 	public RouteDefinitionRouteLocator(RouteDefinitionLocator routeDefinitionLocator,
 			List<RoutePredicateFactory> predicates, List<GatewayFilterFactory> gatewayFilterFactories,
 			GatewayProperties gatewayProperties, ConfigurationService configurationService) {
@@ -112,6 +121,11 @@ public class RouteDefinitionRouteLocator implements RouteLocator {
 		});
 	}
 
+	/**
+	 * 路由对象转换
+	 * @param routeDefinition
+	 * @return
+	 */
 	private Route convertToRoute(RouteDefinition routeDefinition) {
 		AsyncPredicate<ServerWebExchange> predicate = combinePredicates(routeDefinition);
 		List<GatewayFilter> gatewayFilters = getFilters(routeDefinition);

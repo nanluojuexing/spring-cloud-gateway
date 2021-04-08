@@ -255,6 +255,10 @@ public class GatewayAutoConfiguration {
 		return new RoutePredicateHandlerMapping(webHandler, routeLocator, globalCorsProperties, environment);
 	}
 
+	/**
+	 * 加载 gateway 配置文件
+	 * @return
+	 */
 	@Bean
 	public GatewayProperties gatewayProperties() {
 		return new GatewayProperties();
@@ -267,6 +271,10 @@ public class GatewayAutoConfiguration {
 		return new SecureHeadersProperties();
 	}
 
+	/**
+	 * 请求转发器
+	 * @return
+	 */
 	@Bean
 	@ConditionalOnProperty(name = "spring.cloud.gateway.forwarded.enabled", matchIfMissing = true)
 	public ForwardedHeadersFilter forwardedHeadersFilter() {
@@ -806,6 +814,9 @@ public class GatewayAutoConfiguration {
 
 	}
 
+	/**
+	 * 最后初始化gatewayControllerEndpoint 这里注意只有引入spring-boot-starter-actuator他才会加载
+	 */
 	@Configuration(proxyBeanMethods = false)
 	@ConditionalOnClass(Health.class)
 	protected static class GatewayActuatorConfiguration {

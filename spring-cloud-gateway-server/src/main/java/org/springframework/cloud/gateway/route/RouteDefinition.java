@@ -46,6 +46,9 @@ public class RouteDefinition {
 	@Valid
 	private List<PredicateDefinition> predicates = new ArrayList<>();
 
+	/**
+	 * 用于匹配内部的配置 指 routes 下的 filters配置
+	 */
 	@Valid
 	private List<FilterDefinition> filters = new ArrayList<>();
 

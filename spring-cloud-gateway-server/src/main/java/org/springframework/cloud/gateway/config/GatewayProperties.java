@@ -48,7 +48,7 @@ public class GatewayProperties {
 	private final Log logger = LogFactory.getLog(getClass());
 
 	/**
-	 * List of Routes.
+	 * List of Routes.  路由规则
 	 */
 	@NotNull
 	@Valid
@@ -56,6 +56,7 @@ public class GatewayProperties {
 
 	/**
 	 * List of filter definitions that are applied to every route.
+	 * 匹配外部配置
 	 */
 	private List<FilterDefinition> defaultFilters = new ArrayList<>();
 

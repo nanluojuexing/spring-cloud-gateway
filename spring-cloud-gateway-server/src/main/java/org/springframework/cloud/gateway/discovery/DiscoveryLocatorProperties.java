@@ -27,9 +27,16 @@ import org.springframework.core.style.ToStringCreator;
 @ConfigurationProperties("spring.cloud.gateway.discovery.locator")
 public class DiscoveryLocatorProperties {
 
+	/**
+	 * 启用DiscoveryClient网关集成的标志
+	 */
 	/** Flag that enables DiscoveryClient gateway integration. */
 	private boolean enabled = false;
 
+	/**
+	 * routeId的前缀，如果有配置前缀如 test1111_，则routeId为： test1111_service1
+	 * 没配置时 默认为 DiscoveryClient.getClass().getSimpleName() + "_". 服务ID将被添加以创建routeId， 如： ReactiveCompositeDiscoveryClient_service1
+	 */
 	/**
 	 * The prefix for the routeId, defaults to discoveryClient.getClass().getSimpleName()
 	 * + "_". Service Id will be appended to create the routeId.
@@ -42,6 +49,9 @@ public class DiscoveryLocatorProperties {
 	 */
 	private String includeExpression = "true";
 
+	/**
+	 * 为每个路由创建uri的SpEL表达式，默认为：'lb://'+serviceId
+	 */
 	/**
 	 * SpEL expression that create the uri for each route, defaults to: 'lb://'+serviceId.
 	 */

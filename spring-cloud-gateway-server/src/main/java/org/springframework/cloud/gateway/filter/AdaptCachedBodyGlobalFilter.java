@@ -34,10 +34,18 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.C
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.CACHED_SERVER_HTTP_REQUEST_DECORATOR_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR;
 
+/**
+ * 缓存请求body的全局过滤器
+ * AdaptCachedBodyGlobalFilter在全局过滤器中优先级仅次于RemoveCachedBodyFilter
+ */
 public class AdaptCachedBodyGlobalFilter implements GlobalFilter, Ordered, ApplicationListener<EnableBodyCachingEvent> {
 
 	private ConcurrentMap<String, Boolean> routesToCache = new ConcurrentHashMap<>();
 
+	/**
+	 * 支持监听EnableBodyCachingEvent,接收到该事件则对应的路由的请求body则会启用缓存
+	 * @param event
+	 */
 	@Override
 	public void onApplicationEvent(EnableBodyCachingEvent event) {
 		this.routesToCache.putIfAbsent(event.getRouteId(), true);
@@ -59,10 +67,16 @@ public class AdaptCachedBodyGlobalFilter implements GlobalFilter, Ordered, Appli
 		DataBuffer body = exchange.getAttributeOrDefault(CACHED_REQUEST_BODY_ATTR, null);
 		Route route = exchange.getAttribute(GATEWAY_ROUTE_ATTR);
 
+		// body 不为空的话，说明之前已经缓存
 		if (body != null || !this.routesToCache.containsKey(route.getId())) {
 			return chain.filter(exchange);
 		}
 
+		// 此处是缓存过滤器的核心，在此工具方法中会将缓存存入网关上下文之中
+		// 将请求正文缓存在ServerWebExchange属性中。
+		// 该属性为{@link CACHED_REQUEST_BODY_ATTR}。
+		// 如果从无法变更ServerWebExchange的位置（例如谓词）调用此方法，
+		// 则将cacheDecoratedRequest设置为true会将{@link ServerHttpRequestDecorator}放在属性{@link CACHED_SERVER_HTTP_REQUEST_DECORATOR_ATTR}中，以备后用。
 		return ServerWebExchangeUtils.cacheRequestBody(exchange, (serverHttpRequest) -> {
 			// don't mutate and build if same request object
 			if (serverHttpRequest == exchange.getRequest()) {

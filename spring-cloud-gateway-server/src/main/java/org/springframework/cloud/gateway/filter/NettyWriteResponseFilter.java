@@ -38,6 +38,10 @@ import org.springframework.web.server.ServerWebExchange;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.CLIENT_RESPONSE_CONN_ATTR;
 
 /**
+ * Netty写响应全局过滤器
+ * ServerWebExchangeUtils.CLIENT_RESPONSE_ATTR交换属性中存在Netty HttpClientResponse，则NettyWriteResponseFilter将运行。
+ * 它在所有其他筛选器完成后运行，并将代理响应写回到网关客户端响应。
+ *
  * @author Spencer Gibb
  */
 public class NettyWriteResponseFilter implements GlobalFilter, Ordered {

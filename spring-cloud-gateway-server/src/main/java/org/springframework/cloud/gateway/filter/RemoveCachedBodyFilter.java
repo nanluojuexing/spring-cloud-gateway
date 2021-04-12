@@ -26,6 +26,12 @@ import org.springframework.web.server.ServerWebExchange;
 
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.CACHED_REQUEST_BODY_ATTR;
 
+/**
+ * 清除缓存body的全局过滤器
+ * RemoveCachedBodyFilter在全局过滤器中优先级最高
+ * 所以每次请求发送过来先将网关上线文中的请求body删除，然后再从请求中获取body缓存到网关上线文，
+ * 属性是CACHED_REQUEST_BODY_ATTR（cachedRequestBody），这样就可以直接从网关上下文中拿到请求参数，而不会出现从request中拿到之后还要回填到请求体的问题
+ */
 public class RemoveCachedBodyFilter implements GlobalFilter, Ordered {
 
 	private static final Log log = LogFactory.getLog(RemoveCachedBodyFilter.class);
@@ -46,6 +52,10 @@ public class RemoveCachedBodyFilter implements GlobalFilter, Ordered {
 		});
 	}
 
+	/**
+	 * 最高优先级
+	 * @return
+	 */
 	@Override
 	public int getOrder() {
 		return HIGHEST_PRECEDENCE;

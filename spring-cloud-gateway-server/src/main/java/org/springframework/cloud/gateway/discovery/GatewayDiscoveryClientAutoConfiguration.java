@@ -42,6 +42,8 @@ import static org.springframework.cloud.gateway.support.NameUtils.normalizeFilte
 import static org.springframework.cloud.gateway.support.NameUtils.normalizeRoutePredicateName;
 
 /**
+ * 网关服务发现客户端自动装配类
+ *
  * @author Spencer Gibb
  */
 @Configuration(proxyBeanMethods = false)
@@ -91,6 +93,12 @@ public class GatewayDiscoveryClientAutoConfiguration {
 	@ConditionalOnProperty(value = "spring.cloud.discovery.reactive.enabled", matchIfMissing = true)
 	public static class ReactiveDiscoveryClientRouteDefinitionLocatorConfiguration {
 
+		/**
+		 * 服务发现客户端路由定义定位器bean
+		 * @param discoveryClient
+		 * @param properties
+		 * @return
+		 */
 		@Bean
 		@ConditionalOnProperty(name = "spring.cloud.gateway.discovery.locator.enabled")
 		public DiscoveryClientRouteDefinitionLocator discoveryClientRouteDefinitionLocator(

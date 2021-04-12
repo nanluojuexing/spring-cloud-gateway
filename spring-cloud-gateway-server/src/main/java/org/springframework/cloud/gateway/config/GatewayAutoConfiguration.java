@@ -182,34 +182,65 @@ import static org.springframework.cloud.gateway.config.HttpClientProperties.Pool
 @ConditionalOnClass(DispatcherHandler.class)
 public class GatewayAutoConfiguration {
 
+	/**
+	 * String时间类型转换为ZonedDateTime时间类型的转换bean
+	 * @return
+	 */
 	@Bean
 	public StringToZonedDateTimeConverter stringToZonedDateTimeConverter() {
 		return new StringToZonedDateTimeConverter();
 	}
 
+	/**
+	 * 路由器定位的builder
+	 * @param context
+	 * @return
+	 */
 	@Bean
 	public RouteLocatorBuilder routeLocatorBuilder(ConfigurableApplicationContext context) {
 		return new RouteLocatorBuilder(context);
 	}
 
+	/**
+	 * properties路由定义定位器bean（主要作用是读取路由的配置信息）
+	 * ConditionalOnMissingBean是修饰bean的一个注解，意思是该bean没被初始化，则会初始化，如果指定了value且为父类接口，则说明外部可以继承该覆盖覆盖该bean。
+	 * @param properties
+	 * @return
+	 */
 	@Bean
 	@ConditionalOnMissingBean
 	public PropertiesRouteDefinitionLocator propertiesRouteDefinitionLocator(GatewayProperties properties) {
 		return new PropertiesRouteDefinitionLocator(properties);
 	}
 
+	/**
+	 * 内存路由存储bean 动态路由的关键（可以继承RouteDefinitionRepository自定义自己的动态路由覆盖此路由）
+	 * @return
+	 */
 	@Bean
 	@ConditionalOnMissingBean(RouteDefinitionRepository.class)
 	public InMemoryRouteDefinitionRepository inMemoryRouteDefinitionRepository() {
 		return new InMemoryRouteDefinitionRepository();
 	}
 
+	/**
+	 * 路由定义定位器bean
+	 * @param routeDefinitionLocators
+	 * @return
+	 */
 	@Bean
 	@Primary
 	public RouteDefinitionLocator routeDefinitionLocator(List<RouteDefinitionLocator> routeDefinitionLocators) {
 		return new CompositeRouteDefinitionLocator(Flux.fromIterable(routeDefinitionLocators));
 	}
 
+	/**
+	 * 配置服务
+	 * @param beanFactory
+	 * @param conversionService
+	 * @param validator
+	 * @return
+	 */
 	@Bean
 	public ConfigurationService gatewayConfigurationService(BeanFactory beanFactory,
 			@Qualifier("webFluxConversionService") ObjectProvider<ConversionService> conversionService,
@@ -217,6 +248,15 @@ public class GatewayAutoConfiguration {
 		return new ConfigurationService(beanFactory, conversionService, validator);
 	}
 
+	/**
+	 * 路由定位器
+	 * @param properties
+	 * @param gatewayFilters
+	 * @param predicates
+	 * @param routeDefinitionLocator
+	 * @param configurationService
+	 * @return
+	 */
 	@Bean
 	public RouteLocator routeDefinitionRouteLocator(GatewayProperties properties,
 			List<GatewayFilterFactory> gatewayFilters, List<RoutePredicateFactory> predicates,
@@ -225,6 +265,11 @@ public class GatewayAutoConfiguration {
 				configurationService);
 	}
 
+	/**
+	 * 缓存路由定位器，对路由定位器进行附加功能的包装，对外提供服务
+	 * @param routeLocators
+	 * @return
+	 */
 	@Bean
 	@Primary
 	@ConditionalOnMissingBean(name = "cachedCompositeRouteLocator")
@@ -233,22 +278,44 @@ public class GatewayAutoConfiguration {
 		return new CachingRouteLocator(new CompositeRouteLocator(Flux.fromIterable(routeLocators)));
 	}
 
+	/**
+	 * 路由监听刷新器
+	 * @param publisher
+	 * @return
+	 */
 	@Bean
 	@ConditionalOnClass(name = "org.springframework.cloud.client.discovery.event.HeartbeatMonitor")
 	public RouteRefreshListener routeRefreshListener(ApplicationEventPublisher publisher) {
 		return new RouteRefreshListener(publisher);
 	}
 
+	/**
+	 * 处理请求的全局过滤器链的web过滤器bean
+	 * @param globalFilters
+	 * @return
+	 */
 	@Bean
 	public FilteringWebHandler filteringWebHandler(List<GlobalFilter> globalFilters) {
 		return new FilteringWebHandler(globalFilters);
 	}
 
+	/**
+	 * 跨域配置
+	 * @return
+	 */
 	@Bean
 	public GlobalCorsProperties globalCorsProperties() {
 		return new GlobalCorsProperties();
 	}
 
+	/**
+	 * 路由匹配bean
+	 * @param webHandler
+	 * @param routeLocator
+	 * @param globalCorsProperties
+	 * @param environment
+	 * @return
+	 */
 	@Bean
 	public RoutePredicateHandlerMapping routePredicateHandlerMapping(FilteringWebHandler webHandler,
 			RouteLocator routeLocator, GlobalCorsProperties globalCorsProperties, Environment environment) {
@@ -266,6 +333,10 @@ public class GatewayAutoConfiguration {
 
 	// ConfigurationProperty beans
 
+	/**
+	 * 安全相关的响应配置
+	 * @return
+	 */
 	@Bean
 	public SecureHeadersProperties secureHeadersProperties() {
 		return new SecureHeadersProperties();
@@ -294,26 +365,43 @@ public class GatewayAutoConfiguration {
 		return new XForwardedHeadersFilter();
 	}
 
-	// GlobalFilter beans
+	// GlobalFilter beans 全局过滤器
 
+	/**
+	 * 缓存请求body
+	 * @return
+	 */
 	@Bean
 	@ConditionalOnEnabledGlobalFilter
 	public AdaptCachedBodyGlobalFilter adaptCachedBodyGlobalFilter() {
 		return new AdaptCachedBodyGlobalFilter();
 	}
 
+	/**
+	 * 全局过滤器 - 清除缓存的请求body
+	 * @return
+	 */
 	@Bean
 	@ConditionalOnEnabledGlobalFilter
 	public RemoveCachedBodyFilter removeCachedBodyFilter() {
 		return new RemoveCachedBodyFilter();
 	}
 
+	/**
+	 * 全局过滤器 - 从Route建新的URI并暂存GATEWAY_REQUEST_URL_ATTR 中
+	 * @return
+	 */
 	@Bean
 	@ConditionalOnEnabledGlobalFilter
 	public RouteToRequestUrlFilter routeToRequestUrlFilter() {
 		return new RouteToRequestUrlFilter();
 	}
 
+	/**
+	 * 全局过滤器 - 转发路由过滤器bean
+	 * @param dispatcherHandler
+	 * @return
+	 */
 	@Bean
 	@ConditionalOnEnabledGlobalFilter
 	public ForwardRoutingFilter forwardRoutingFilter(ObjectProvider<DispatcherHandler> dispatcherHandler) {
@@ -332,6 +420,13 @@ public class GatewayAutoConfiguration {
 		return new HandshakeWebSocketService(requestUpgradeStrategy);
 	}
 
+	/**
+	 * 全局过滤器 - websocket路由过滤器
+	 * @param webSocketClient
+	 * @param webSocketService
+	 * @param headersFilters
+	 * @return
+	 */
 	@Bean
 	@ConditionalOnEnabledGlobalFilter
 	public WebsocketRoutingFilter websocketRoutingFilter(WebSocketClient webSocketClient,
@@ -346,7 +441,7 @@ public class GatewayAutoConfiguration {
 		return new WeightCalculatorWebFilter(routeLocator, configurationService);
 	}
 
-	// Predicate Factory beans
+	// Predicate Factory beans 谓词工厂
 
 	@Bean
 	@ConditionalOnEnabledPredicate
@@ -427,7 +522,7 @@ public class GatewayAutoConfiguration {
 		return new CloudFoundryRouteServiceRoutePredicateFactory();
 	}
 
-	// GatewayFilter Factory beans
+	// GatewayFilter Factory beans 路由过滤器工厂
 
 	@Bean
 	@ConditionalOnEnabledFilter

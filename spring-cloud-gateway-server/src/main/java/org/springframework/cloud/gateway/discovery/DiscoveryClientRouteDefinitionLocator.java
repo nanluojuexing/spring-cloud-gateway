@@ -49,6 +49,9 @@ public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLoc
 
 	private static final Log log = LogFactory.getLog(DiscoveryClientRouteDefinitionLocator.class);
 
+	/**
+	 * 配置
+	 */
 	private final DiscoveryLocatorProperties properties;
 
 	private final String routeIdPrefix;
@@ -64,6 +67,11 @@ public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLoc
 				.flatMap(service -> discoveryClient.getInstances(service).collectList());
 	}
 
+	/**
+	 * 服务名发现客户端
+	 * @param discoveryClientName
+	 * @param properties
+	 */
 	private DiscoveryClientRouteDefinitionLocator(String discoveryClientName, DiscoveryLocatorProperties properties) {
 		this.properties = properties;
 		if (StringUtils.hasText(properties.getRouteIdPrefix())) {
@@ -75,11 +83,17 @@ public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLoc
 		evalCtxt = SimpleEvaluationContext.forReadOnlyDataBinding().withInstanceMethods().build();
 	}
 
+	/**
+	 * 获取路由定义
+	 * @return
+	 */
 	@Override
 	public Flux<RouteDefinition> getRouteDefinitions() {
-
+		// sqel语言解析器
 		SpelExpressionParser parser = new SpelExpressionParser();
+		// 是否包含el表达式的el表达式
 		Expression includeExpr = parser.parseExpression(properties.getIncludeExpression());
+		// url的el表达式
 		Expression urlExpr = parser.parseExpression(properties.getUrlExpression());
 
 		Predicate<ServiceInstance> includePredicate;
@@ -126,6 +140,12 @@ public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLoc
 				});
 	}
 
+	/**
+	 * build 路由解析器
+	 * @param urlExpr
+	 * @param serviceInstance
+	 * @return
+	 */
 	protected RouteDefinition buildRouteDefinition(Expression urlExpr, ServiceInstance serviceInstance) {
 		String serviceId = serviceInstance.getServiceId();
 		RouteDefinition routeDefinition = new RouteDefinition();

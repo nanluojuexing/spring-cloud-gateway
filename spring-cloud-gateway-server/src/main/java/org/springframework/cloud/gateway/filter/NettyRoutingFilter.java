@@ -66,6 +66,12 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.i
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.setAlreadyRouted;
 
 /**
+ *
+ * Netty路由全局过滤器，最低优先级路由器
+ * 如果ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR的exchange属性中的URL带有http或https，则将运行NettyRoutingFilter。它使用Netty HttpClient发出下游代理请求。
+ * 响应将放入ServerWebExchangeUtils.CLIENT_RESPONSE_ATTR的exchange属性中，供后面的过滤器使用。
+ * （还有一个实验性的WebClientHttpRoutingFilter，它执行相同的功能，但不需要Netty。）
+ *
  * @author Spencer Gibb
  * @author Biju Kunjummen
  */
@@ -115,6 +121,7 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 		if (isAlreadyRouted(exchange) || (!"http".equals(scheme) && !"https".equals(scheme))) {
 			return chain.filter(exchange);
 		}
+		// 设置 GATEWAY_ALREADY_ROUTED_ATTR 标识已路由
 		setAlreadyRouted(exchange);
 
 		ServerHttpRequest request = exchange.getRequest();

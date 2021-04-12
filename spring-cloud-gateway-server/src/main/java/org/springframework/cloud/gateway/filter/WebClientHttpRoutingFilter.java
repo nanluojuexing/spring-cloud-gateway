@@ -42,6 +42,8 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.i
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.setAlreadyRouted;
 
 /**
+ * 使用WebClient请求的全局过滤器 实验性质的不依赖netty的过滤器
+ *
  * @author Spencer Gibb
  */
 public class WebClientHttpRoutingFilter implements GlobalFilter, Ordered {
@@ -76,6 +78,7 @@ public class WebClientHttpRoutingFilter implements GlobalFilter, Ordered {
 		URI requestUrl = exchange.getRequiredAttribute(GATEWAY_REQUEST_URL_ATTR);
 
 		String scheme = requestUrl.getScheme();
+		// 已路由 并且 是http或https的的schema 说明已经执行过该过滤器
 		if (isAlreadyRouted(exchange) || (!"http".equals(scheme) && !"https".equals(scheme))) {
 			return chain.filter(exchange);
 		}
